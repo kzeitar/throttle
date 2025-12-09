@@ -1,0 +1,25 @@
+{
+  "name": "@zeitar/throttle",
+  "version": "1.0.0",
+  "description": "Provides a Token Bucket implementation to rate limit input and output in your application",
+  "keywords": [
+    "limiter",
+    "rate-limiter"
+  ],
+  "homepage": "https://github.com/kzeitar/throttle",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Khaled Zeitar",
+      "email": "khalidzeiter9@gmail.com"
+    }
+  ],
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "typescript": "^5.9.3"
+  }
+}
