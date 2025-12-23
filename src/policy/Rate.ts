@@ -1,4 +1,4 @@
-import { InvalidIntervalException } from '../exceptions/InvalidIntervalException';
+import { InvalidIntervalError } from '../errors/InvalidIntervalError';
 import { TimeUtil } from '../util/TimeUtil';
 
 /**
@@ -12,13 +12,13 @@ export class Rate {
 
   constructor(intervalInSeconds: number, amount: number) {
     if (intervalInSeconds < 1) {
-      throw new InvalidIntervalException(
+      throw new InvalidIntervalError(
         `Interval must be at least 1 second, got ${intervalInSeconds}`
       );
     }
 
     if (amount < 1) {
-      throw new InvalidIntervalException(
+      throw new InvalidIntervalError(
         `Amount must be at least 1, got ${amount}`
       );
     }

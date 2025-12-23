@@ -9,7 +9,7 @@ import {
   InMemoryStorage,
   CompoundRateLimiterFactory,
   Rate,
-  RateLimitExceededException,
+  RateLimitExceededError,
 } from '../src';
 
 async function tokenBucketExample() {
@@ -188,7 +188,7 @@ async function exceptionHandlingExample() {
     const result = await limiter.consume(1);
     result.ensureAccepted(); // This will throw
   } catch (e) {
-    if (e instanceof RateLimitExceededException) {
+    if (e instanceof RateLimitExceededError) {
       console.log(`Rate limit exceeded!`);
       console.log(`  Retry after: ${e.getRetryAfter()}`);
       console.log(`  Remaining tokens: ${e.getRemainingTokens()}`);

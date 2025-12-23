@@ -5,14 +5,14 @@ import type { RateLimit } from '../RateLimit';
  *
  * Contains the RateLimit object with details about when to retry and remaining tokens.
  */
-export class RateLimitExceededException extends Error {
+export class RateLimitExceededError extends Error {
   private readonly rateLimit: RateLimit;
 
   constructor(message: string, rateLimit: RateLimit) {
     super(message);
-    this.name = 'RateLimitExceededException';
+    this.name = 'RateLimitExceededError';
     this.rateLimit = rateLimit;
-    Object.setPrototypeOf(this, RateLimitExceededException.prototype);
+    Object.setPrototypeOf(this, RateLimitExceededError.prototype);
   }
 
   /**

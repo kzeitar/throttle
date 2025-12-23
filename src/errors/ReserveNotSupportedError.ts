@@ -4,10 +4,10 @@
  * Some limiters (like CompoundLimiter) don't support the reserve pattern and will
  * throw this exception if reserve() is called.
  */
-export class ReserveNotSupportedException extends Error {
+export class ReserveNotSupportedError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'ReserveNotSupportedException';
-    Object.setPrototypeOf(this, ReserveNotSupportedException.prototype);
+    this.name = 'ReserveNotSupportedError';
+    Object.setPrototypeOf(this, ReserveNotSupportedError.prototype);
   }
 }

@@ -3,7 +3,7 @@ import type { StorageInterface } from '../storage/StorageInterface';
 import type { LockInterface } from '../storage/LockInterface';
 import { RateLimit } from '../RateLimit';
 import { Reservation } from '../Reservation';
-import { MaxWaitDurationExceededException } from '../exceptions/MaxWaitDurationExceededException';
+import { MaxWaitDurationExceededError } from '../errors/MaxWaitDurationExceededError';
 import { TokenBucket } from './TokenBucket';
 import { Rate } from './Rate';
 import { TimeUtil } from '../util/TimeUtil';
@@ -78,7 +78,7 @@ export class TokenBucketLimiter implements LimiterInterface {
       if (maxTime !== null && waitTime > maxTime) {
         const retryAfter = new Date((now + waitTime) * 1000);
         const rateLimit = new RateLimit(availableTokens, retryAfter, false, this.burstSize);
-        throw new MaxWaitDurationExceededException(
+        throw new MaxWaitDurationExceededError(
           `Cannot reserve ${tokens} tokens within ${maxTime} seconds`,
           rateLimit
         );

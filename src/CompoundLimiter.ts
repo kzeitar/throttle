@@ -1,7 +1,7 @@
 import type { LimiterInterface } from './LimiterInterface';
 import type { RateLimit } from './RateLimit';
 import { Reservation } from './Reservation';
-import { ReserveNotSupportedException } from './exceptions/ReserveNotSupportedException';
+import { ReserveNotSupportedError } from './errors/ReserveNotSupportedError';
 
 /**
  * Compound rate limiter that combines multiple limiters.
@@ -25,10 +25,10 @@ export class CompoundLimiter implements LimiterInterface {
   /**
    * Reserve is not supported by compound limiters.
    *
-   * @throws {ReserveNotSupportedException} Always throws
+   * @throws {ReserveNotSupportedError} Always throws
    */
   async reserve(_tokens: number = 1, _maxTime: number | null = null): Promise<Reservation> {
-    throw new ReserveNotSupportedException(
+    throw new ReserveNotSupportedError(
       'CompoundLimiter does not support the reserve() method. Use consume() instead.'
     );
   }

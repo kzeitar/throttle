@@ -5,14 +5,14 @@ import type { RateLimit } from '../RateLimit';
  *
  * This exception is thrown by reserve() when the wait duration exceeds the maxTime parameter.
  */
-export class MaxWaitDurationExceededException extends Error {
+export class MaxWaitDurationExceededError extends Error {
   private readonly rateLimit: RateLimit;
 
   constructor(message: string, rateLimit: RateLimit) {
     super(message);
-    this.name = 'MaxWaitDurationExceededException';
+    this.name = 'MaxWaitDurationExceededError';
     this.rateLimit = rateLimit;
-    Object.setPrototypeOf(this, MaxWaitDurationExceededException.prototype);
+    Object.setPrototypeOf(this, MaxWaitDurationExceededError.prototype);
   }
 
   /**

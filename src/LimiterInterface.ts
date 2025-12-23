@@ -15,7 +15,7 @@ export interface LimiterInterface {
    * @param tokens - Number of tokens to reserve
    * @param maxTime - Maximum time to wait (in seconds), or null for no limit
    * @returns A Reservation object
-   * @throws {MaxWaitDurationExceededException} If wait time exceeds maxTime
+   * @throws {MaxWaitDurationExceededError} If wait time exceeds maxTime
    */
   reserve(tokens: number, maxTime?: number | null): Promise<Reservation>;
 

@@ -100,7 +100,7 @@ try {
   // Proceed with operation
   console.log('Tokens acquired!');
 } catch (e) {
-  if (e instanceof MaxWaitDurationExceededException) {
+  if (e instanceof MaxWaitDurationExceededError) {
     console.log('Would need to wait too long');
   }
 }
@@ -265,15 +265,15 @@ Rate.fromString('1 hour-100'); // 100 tokens per hour
 
 ```typescript
 import {
-  RateLimitExceededException,
-  MaxWaitDurationExceededException
+  RateLimitExceededError,
+  MaxWaitDurationExceededError
 } from '@zeitar/throttle';
 
 try {
   const result = await limiter.consume(10);
   result.ensureAccepted(); // Throws if rate limited
 } catch (e) {
-  if (e instanceof RateLimitExceededException) {
+  if (e instanceof RateLimitExceededError) {
     console.log(`Rate limited until ${e.getRetryAfter()}`);
     console.log(`Remaining: ${e.getRemainingTokens()}`);
   }

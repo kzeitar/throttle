@@ -4,10 +4,10 @@
  * An interval is considered invalid if it's less than 1 second or otherwise
  * doesn't meet the requirements of the rate limiting policy.
  */
-export class InvalidIntervalException extends Error {
+export class InvalidIntervalError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'InvalidIntervalException';
-    Object.setPrototypeOf(this, InvalidIntervalException.prototype);
+    this.name = 'InvalidIntervalError';
+    Object.setPrototypeOf(this, InvalidIntervalError.prototype);
   }
 }

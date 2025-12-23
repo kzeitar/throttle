@@ -46,10 +46,10 @@ export { SlidingWindowLimiter } from './policy/SlidingWindowLimiter';
 export { NoLimiter } from './policy/NoLimiter';
 
 // Exceptions
-export { InvalidIntervalException } from './exceptions/InvalidIntervalException';
-export { MaxWaitDurationExceededException } from './exceptions/MaxWaitDurationExceededException';
-export { RateLimitExceededException } from './exceptions/RateLimitExceededException';
-export { ReserveNotSupportedException } from './exceptions/ReserveNotSupportedException';
+export { InvalidIntervalError } from './errors/InvalidIntervalError';
+export { MaxWaitDurationExceededError } from './errors/MaxWaitDurationExceededError';
+export { RateLimitExceededError } from './errors/RateLimitExceededError';
+export { ReserveNotSupportedError } from './errors/ReserveNotSupportedError';
 
 // Utilities
 export { TimeUtil } from './util/TimeUtil';

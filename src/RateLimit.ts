@@ -1,4 +1,4 @@
-import { RateLimitExceededException } from './exceptions/RateLimitExceededException';
+import { RateLimitExceededError } from './errors/RateLimitExceededError';
 
 /**
  * Result object from a rate limiting operation.
@@ -34,11 +34,11 @@ export class RateLimit {
   /**
    * Ensure the request was accepted, throw an exception otherwise.
    *
-   * @throws {RateLimitExceededException} If the request was not accepted
+   * @throws {RateLimitExceededError} If the request was not accepted
    */
   ensureAccepted(): this {
     if (!this.accepted) {
-      throw new RateLimitExceededException('Rate limit exceeded', this);
+      throw new RateLimitExceededError('Rate limit exceeded', this);
     }
     return this;
   }

@@ -8,7 +8,7 @@ import { SlidingWindowLimiter } from './policy/SlidingWindowLimiter';
 import { NoLimiter } from './policy/NoLimiter';
 import { Rate } from './policy/Rate';
 import { TimeUtil } from './util/TimeUtil';
-import { InvalidIntervalException } from './exceptions/InvalidIntervalException';
+import { InvalidIntervalError } from './errors/InvalidIntervalError';
 
 /**
  * Configuration for token bucket policy.
@@ -181,7 +181,7 @@ export class RateLimiterFactory implements RateLimiterFactoryInterface {
     const intervalInSeconds = TimeUtil.durationToSeconds(config.interval);
 
     if (intervalInSeconds < 1) {
-      throw new InvalidIntervalException(
+      throw new InvalidIntervalError(
         `Interval must be at least 1 second, got ${intervalInSeconds}`
       );
     }
@@ -205,7 +205,7 @@ export class RateLimiterFactory implements RateLimiterFactoryInterface {
     const intervalInSeconds = TimeUtil.durationToSeconds(config.interval);
 
     if (intervalInSeconds < 1) {
-      throw new InvalidIntervalException(
+      throw new InvalidIntervalError(
         `Interval must be at least 1 second, got ${intervalInSeconds}`
       );
     }
