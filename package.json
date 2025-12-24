@@ -22,11 +22,18 @@
       "email": "khalidzeiter9@gmail.com"
     }
   ],
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "sideEffects": false,
   "files": [
     "dist",
-    "src",
     "README.md",
     "LICENSE.md"
   ],
