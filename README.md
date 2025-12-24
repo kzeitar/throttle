@@ -2,6 +2,8 @@
 
 A production-ready TypeScript rate limiting library with support for multiple algorithms.
 
+> Architecture inspired by [Symfony's Rate Limiter component](https://symfony.com/doc/current/rate_limiter.html), implemented natively in TypeScript with async/await patterns for Node.js.
+
 ## Features
 
 - 🚀 **Multiple Algorithms**: Token Bucket, Fixed Window, Sliding Window, and No-Limit policies
@@ -322,14 +324,14 @@ const storage = new InMemoryStorage();
 storage.clear();
 ```
 
-## Migration from PHP
+## Comparison with Symfony Rate Limiter
 
-This library is a faithful TypeScript port of the PHP rate-limiter. Key differences:
+If you're familiar with Symfony's Rate Limiter, this library provides similar functionality for TypeScript/Node.js:
 
-- **Async/Await**: All methods return Promises (PHP version was synchronous)
-- **Milliseconds**: JavaScript uses ms timestamps (PHP uses seconds with microseconds)
-- **No OptionsResolver**: Uses TypeScript types for validation
-- **JSON Serialization**: Uses JSON instead of PHP's serialize()
+- **Async/Await**: All methods return Promises for non-blocking operations
+- **TypeScript-native**: Full type safety with discriminated unions instead of OptionsResolver
+- **JSON Serialization**: Native JSON for state persistence
+- **Familiar API**: Similar method signatures (`reserve()`, `consume()`, `reset()`) for easy adoption
 
 ## License
 
@@ -339,6 +341,12 @@ MIT
 
 Contributions welcome! Please open an issue or PR.
 
-## Credits
+## Credits & Acknowledgments
 
-Ported from the Symfony Rate Limiter component architecture.
+This library implements standard rate limiting algorithms (Token Bucket, Fixed Window, Sliding Window) with an architecture **inspired by** [Symfony's Rate Limiter component](https://github.com/symfony/rate-limiter).
+
+- **Implementation**: © 2025 Khaled Zeitar - Original TypeScript implementation
+- **Architectural inspiration**: Symfony Rate Limiter by Fabien Potencier and contributors
+- **License**: MIT
+
+While the code is written from scratch in TypeScript, the design patterns, API structure, and architectural decisions are influenced by Symfony's proven approach to rate limiting. This provides the benefits of a battle-tested design while being built natively for Node.js with full TypeScript support and async/await patterns.

@@ -1,10 +1,18 @@
 {
   "name": "@zeitar/throttle",
   "version": "1.0.0",
-  "description": "Provides a Token Bucket implementation to rate limit input and output in your application",
+  "description": "Production-ready rate limiting for Node.js - Token Bucket, Fixed Window, and Sliding Window algorithms with TypeScript support",
   "keywords": [
-    "limiter",
-    "rate-limiter"
+    "rate-limiter",
+    "rate-limiting",
+    "throttle",
+    "token-bucket",
+    "sliding-window",
+    "fixed-window",
+    "api-rate-limit",
+    "symfony",
+    "typescript",
+    "async"
   ],
   "homepage": "https://github.com/kzeitar/throttle",
   "license": "MIT",
