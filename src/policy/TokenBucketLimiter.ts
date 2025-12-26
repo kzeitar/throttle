@@ -43,7 +43,7 @@ export class TokenBucketLimiter implements LimiterInterface {
   async reserve(tokens: number = 1, maxTime: number | null = null): Promise<Reservation> {
     return this.lock.withLock(this.id, async () => {
       const now = TimeUtil.now();
-      const bucket = await this.getOrCreateBucket();
+      const bucket = await this.getOrCreateBucket(now);
 
       const availableTokens = bucket.getAvailableTokens(now);
 
@@ -104,7 +104,7 @@ export class TokenBucketLimiter implements LimiterInterface {
   async consume(tokens: number = 1): Promise<RateLimit> {
     return this.lock.withLock(this.id, async () => {
       const now = TimeUtil.now();
-      const bucket = await this.getOrCreateBucket();
+      const bucket = await this.getOrCreateBucket(now);
 
       const availableTokens = bucket.getAvailableTokens(now);
 
@@ -146,7 +146,7 @@ export class TokenBucketLimiter implements LimiterInterface {
   /**
    * Get existing bucket or create a new one.
    */
-  private async getOrCreateBucket(): Promise<TokenBucket> {
+  private async getOrCreateBucket(now?: number): Promise<TokenBucket> {
     const state = await this.storage.fetch(this.id);
 
     if (state instanceof TokenBucket) {
@@ -154,6 +154,6 @@ export class TokenBucketLimiter implements LimiterInterface {
     }
 
     // Create new bucket
-    return new TokenBucket(this.id, this.burstSize, this.rate);
+    return new TokenBucket(this.id, this.burstSize, this.rate, undefined, now);
   }
 }
