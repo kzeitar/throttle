@@ -24,6 +24,22 @@ A production-ready TypeScript rate limiting library with support for multiple al
 npm install @zeitar/throttle
 ```
 
+## Important: What This Library Does (and Doesn't Do)
+
+**This library provides application-level rate limiting** - it's designed to manage legitimate traffic, enforce user quotas, and prevent abuse from authenticated users.
+
+**This library is NOT designed to protect against DDoS attacks.** By the time a request reaches your Node.js application, you've already consumed server resources. For DDoS protection and traffic floods, use network-level solutions:
+
+- **Edge protection**: Cloudflare, AWS Shield, Fastly
+- **Reverse proxy**: NGINX rate limiting, Caddy rate limit module, Apache mod_ratelimit
+- **Load balancer**: Most cloud load balancers have built-in rate limiting
+
+**The right approach is layered security:**
+1. Network/proxy level blocks massive attacks and traffic floods
+2. This library handles per-user quotas, business logic, and authenticated rate limiting
+
+See **[Rate Limiting vs DoS Protection](./docs/rate-limiting-vs-dos-protection.md)** for a detailed explanation and architecture guidance.
+
 ## Quick Start
 
 ```typescript
@@ -94,6 +110,7 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
 
 ### Getting Started
 - **[Getting Started Guide](./docs/getting-started.md)** - Installation, basic usage, and testing
+- **[Rate Limiting vs DoS Protection](./docs/rate-limiting-vs-dos-protection.md)** - Understanding layered security (READ THIS FIRST)
 - **[Choosing an Algorithm](./docs/algorithms.md)** - Algorithm comparison and selection guide
 - **[Framework Integration](./docs/framework-integration.md)** - Express, Fastify, NestJS, Koa, Hono examples
 
