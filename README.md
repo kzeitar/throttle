@@ -4,6 +4,9 @@ A production-ready TypeScript rate limiting library with support for multiple al
 
 > Architecture inspired by [Symfony's Rate Limiter component](https://symfony.com/doc/current/rate_limiter.html), implemented natively in TypeScript with async/await patterns for Node.js.
 
+[![npm version](https://img.shields.io/npm/v/@zeitar/throttle.svg)](https://www.npmjs.com/package/@zeitar/throttle)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ## Features
 
 - 🚀 **Multiple Algorithms**: Token Bucket, Fixed Window, Sliding Window, and No-Limit policies
@@ -11,8 +14,9 @@ A production-ready TypeScript rate limiting library with support for multiple al
 - 🔒 **Production Ready**: Thread-safe with optional distributed locking support
 - 🧩 **Composable**: Combine multiple limiters with CompoundLimiter
 - 💾 **Pluggable Storage**: In-memory storage included, easily extend for Redis, etc.
-- ⚡ **High Performance**: Efficient algorithms with minimal overhead
+- ⚡ **High Performance**: Efficient algorithms with minimal overhead (O(1) time complexity)
 - 🎯 **Zero Dependencies**: Core library has no external dependencies
+- 🔌 **Framework Agnostic**: Works with Express, Fastify, or any Node.js framework
 
 ## Installation
 
@@ -22,13 +26,10 @@ npm install @zeitar/throttle
 
 ## Quick Start
 
-### Token Bucket (Recommended)
-
-Best for most use cases - allows bursts while maintaining steady throughput:
-
 ```typescript
 import { RateLimiterFactory, InMemoryStorage } from '@zeitar/throttle';
 
+// Create a rate limiter factory
 const factory = new RateLimiterFactory(
   {
     policy: 'token_bucket',
@@ -42,274 +43,137 @@ const factory = new RateLimiterFactory(
   new InMemoryStorage()
 );
 
+// Create a limiter for a specific user
 const limiter = factory.create('user-123');
 
 // Try to consume tokens
 const result = await limiter.consume(5);
+
 if (result.isAccepted()) {
-  console.log(`Accepted! ${result.getRemainingTokens()} tokens remaining`);
+  console.log(`✓ Request accepted! ${result.getRemainingTokens()} tokens remaining`);
 } else {
-  console.log(`Rate limited. Retry after: ${result.getRetryAfter()}`);
+  console.log(`✗ Rate limited. Retry after ${result.getRetryAfter()} seconds`);
 }
 ```
 
-### Fixed Window
-
-Simple and efficient, good for strict quotas:
+## Express Middleware Example
 
 ```typescript
+import { RateLimiterFactory, InMemoryStorage } from '@zeitar/throttle';
+import type { Request, Response, NextFunction } from 'express';
+
 const factory = new RateLimiterFactory(
   {
-    policy: 'fixed_window',
+    policy: 'token_bucket',
     id: 'api',
-    limit: 1000,
-    interval: '1 hour'
+    limit: 100,
+    rate: { interval: '1 minute', amount: 100 }
   },
   new InMemoryStorage()
 );
-```
 
-### Sliding Window
+app.use(async (req: Request, res: Response, next: NextFunction) => {
+  const limiter = factory.create(req.ip);
+  const result = await limiter.consume();
 
-Smooths out bursts at window boundaries:
+  res.setHeader('X-RateLimit-Remaining', result.getRemainingTokens().toString());
 
-```typescript
-const factory = new RateLimiterFactory(
-  {
-    policy: 'sliding_window',
-    id: 'api',
-    limit: 1000,
-    interval: '1 hour'
-  },
-  new InMemoryStorage()
-);
-```
-
-## Advanced Usage
-
-### Reservation Pattern
-
-Reserve tokens in advance and wait for availability:
-
-```typescript
-// Reserve 10 tokens, wait up to 5 seconds
-try {
-  const reservation = await limiter.reserve(10, 5);
-
-  // Wait until tokens are available
-  await reservation.wait();
-
-  // Proceed with operation
-  console.log('Tokens acquired!');
-} catch (e) {
-  if (e instanceof MaxWaitDurationExceededError) {
-    console.log('Would need to wait too long');
+  if (!result.isAccepted()) {
+    res.setHeader('Retry-After', result.getRetryAfter().toString());
+    return res.status(429).json({
+      error: 'Too many requests',
+      retryAfter: result.getRetryAfter()
+    });
   }
-}
+
+  next();
+});
 ```
 
-### Compound Limiters
+## Documentation
 
-Enforce multiple rate limits simultaneously:
+### Getting Started
+- **[Getting Started Guide](./docs/getting-started.md)** - Installation, basic usage, and testing
+- **[Choosing an Algorithm](./docs/algorithms.md)** - Algorithm comparison and selection guide
+- **[Framework Integration](./docs/framework-integration.md)** - Express, Fastify, NestJS, Koa, Hono examples
+
+### Core Concepts
+- **[Common Patterns](./docs/common-patterns.md)** - User tiers, endpoint limits, global+per-user patterns
+- **[Advanced Usage](./docs/advanced-usage.md)** - Reservation pattern, compound limiters, dynamic creation
+- **[Custom Storage](./docs/custom-storage.md)** - Redis, PostgreSQL, DynamoDB implementations
+- **[API Reference](./docs/api-reference.md)** - Complete API documentation
+
+### Help & Troubleshooting
+- **[Troubleshooting](./docs/troubleshooting.md)** - Common issues and solutions
+
+## Algorithm Comparison
+
+| Algorithm | Best For | Allows Bursts? | Precision |
+|-----------|----------|----------------|-----------|
+| **Token Bucket** ⭐ | Most APIs, microservices | ✅ Yes | Medium |
+| **Fixed Window** | Daily quotas, analytics | ⚠️ At boundaries | Low |
+| **Sliding Window** | High-security APIs, payments | ❌ No | High |
+| **No Limit** | Testing, feature flags | ✅ Always | N/A |
+
+**Not sure which to choose?** See the [Algorithm Guide](./docs/algorithms.md).
+
+## Key Features
+
+### Multiple Rate Limits (Compound Limiter)
 
 ```typescript
 import { CompoundRateLimiterFactory } from '@zeitar/throttle';
 
-const perSecondFactory = new RateLimiterFactory({
-  policy: 'fixed_window',
-  id: 'per-second',
-  limit: 10,
-  interval: '1 second'
-}, storage);
-
-const perMinuteFactory = new RateLimiterFactory({
-  policy: 'fixed_window',
-  id: 'per-minute',
-  limit: 100,
-  interval: '1 minute'
-}, storage);
-
+// Enforce BOTH limits simultaneously
 const compound = new CompoundRateLimiterFactory([
-  perSecondFactory,
-  perMinuteFactory
+  perSecondFactory,  // 10/second
+  perMinuteFactory   // 100/minute
 ]);
 
 const limiter = compound.create('user-123');
-// This limiter enforces BOTH 10/second AND 100/minute
 ```
 
-### Custom Storage
-
-Implement the `StorageInterface` for Redis, database, etc.:
+### Reservation Pattern
 
 ```typescript
-import { StorageInterface, LimiterStateInterface } from '@zeitar/throttle';
-
-class RedisStorage implements StorageInterface {
-  async save(state: LimiterStateInterface): Promise<void> {
-    const ttl = state.getExpirationTime();
-    const data = JSON.stringify(state.toJSON());
-    await redis.setex(state.getId(), ttl, data);
-  }
-
-  async fetch(id: string): Promise<LimiterStateInterface | null> {
-    const data = await redis.get(id);
-    if (!data) return null;
-
-    // Deserialize based on your state type
-    return YourStateClass.fromJSON(JSON.parse(data));
-  }
-
-  async delete(id: string): Promise<void> {
-    await redis.del(id);
-  }
-}
+// Reserve tokens and wait for availability
+const reservation = await limiter.reserve(10, 5); // Wait max 5 seconds
+await reservation.wait();
+// Tokens are now reserved, proceed with operation
 ```
 
-### Distributed Locking
-
-For distributed systems, implement `LockInterface`:
+### Distributed Systems
 
 ```typescript
-import { LockInterface } from '@zeitar/throttle';
+// Use Redis for multi-server deployments
+import { RedisStorage, RedisLock } from './your-impl';
 
-class RedisLock implements LockInterface {
-  async acquire(key: string, ttl = 10): Promise<boolean> {
-    return await redis.set(key, '1', 'EX', ttl, 'NX');
-  }
-
-  async release(key: string): Promise<void> {
-    await redis.del(key);
-  }
-
-  async withLock<T>(
-    key: string,
-    callback: () => Promise<T>,
-    ttl = 10
-  ): Promise<T> {
-    const acquired = await this.acquire(key, ttl);
-    if (!acquired) {
-      throw new Error('Could not acquire lock');
-    }
-
-    try {
-      return await callback();
-    } finally {
-      await this.release(key);
-    }
-  }
-}
-
-const factory = new RateLimiterFactory(config, storage, new RedisLock());
+const factory = new RateLimiterFactory(
+  config,
+  new RedisStorage(redisClient),
+  new RedisLock(redisClient)
+);
 ```
 
-## API Reference
+See [Custom Storage](./docs/custom-storage.md) for implementation.
 
-### Configuration Types
+## Performance
 
-#### TokenBucketConfig
-```typescript
-{
-  policy: 'token_bucket',
-  id: string,              // Identifier prefix
-  limit: number,           // Burst size (max tokens)
-  rate: {
-    interval: string,      // e.g., '1 hour', '60 seconds'
-    amount: number         // Tokens added per interval
-  }
-}
-```
-
-#### FixedWindowConfig
-```typescript
-{
-  policy: 'fixed_window',
-  id: string,
-  limit: number,           // Max requests per window
-  interval: string         // Window size
-}
-```
-
-#### SlidingWindowConfig
-```typescript
-{
-  policy: 'sliding_window',
-  id: string,
-  limit: number,
-  interval: string
-}
-```
-
-### Duration Formats
-
-All interval strings support:
-- `"1 second"`, `"2 seconds"`, `"1s"`
-- `"1 minute"`, `"2 minutes"`, `"1m"`
-- `"1 hour"`, `"2 hours"`, `"1h"`
-- `"1 day"`, `"2 days"`, `"1d"`
-- `"1 week"`, `"2 weeks"`, `"1w"`
-- `"1 month"`, `"2 months"` (30 days)
-- `"1 year"`, `"2 years"` (365 days)
-
-### Rate Helper Methods
-
-```typescript
-import { Rate } from '@zeitar/throttle';
-
-Rate.perSecond(10);        // 10 tokens/second
-Rate.perMinute(100);       // 100 tokens/minute
-Rate.perHour(1000);        // 1000 tokens/hour
-Rate.perDay(10000);        // 10000 tokens/day
-Rate.fromString('1 hour-100'); // 100 tokens per hour
-```
-
-### Exception Handling
-
-```typescript
-import {
-  RateLimitExceededError,
-  MaxWaitDurationExceededError
-} from '@zeitar/throttle';
-
-try {
-  const result = await limiter.consume(10);
-  result.ensureAccepted(); // Throws if rate limited
-} catch (e) {
-  if (e instanceof RateLimitExceededError) {
-    console.log(`Rate limited until ${e.getRetryAfter()}`);
-    console.log(`Remaining: ${e.getRemainingTokens()}`);
-  }
-}
-```
+- **All algorithms**: O(1) time complexity
+- **Memory usage**: ~100 bytes per active limiter
+- **Throughput**: Designed for high-concurrency scenarios
+- **Storage**: Pluggable backend (in-memory, Redis, database)
 
 ## Architecture
 
-### Design Patterns
+This library uses several design patterns for flexibility and maintainability:
 
 - **Strategy Pattern**: Different algorithms implement `LimiterInterface`
 - **Factory Pattern**: `RateLimiterFactory` creates configured limiters
 - **Composite Pattern**: `CompoundLimiter` combines multiple limiters
 - **Dependency Injection**: Storage and locking are pluggable
 
-### Thread Safety
-
-All limiters use locking (via `LockInterface`) to ensure thread-safe operations. The default `NoLock` is suitable for single-instance apps. For distributed systems, implement a distributed lock (e.g., Redis).
-
-## Algorithm Comparison
-
-| Algorithm | Pros | Cons | Use Case |
-|-----------|------|------|----------|
-| **Token Bucket** | • Allows bursts<br>• Smooth refills<br>• Most flexible | • Slightly more complex | Most API rate limiting |
-| **Fixed Window** | • Simple<br>• Efficient<br>• Predictable | • Burst at boundaries | Strict quotas |
-| **Sliding Window** | • Smooth boundaries<br>• No burst issues | • More computation | High-precision limiting |
-| **No Limit** | • Pass-through | • No limiting | Testing/feature flags |
-
-## Performance
-
-- **Token Bucket**: O(1) time, O(1) space per limiter
-- **Fixed Window**: O(1) time, O(1) space per limiter
-- **Sliding Window**: O(1) time, O(1) space per limiter
-- All algorithms use minimal memory (~100 bytes per active limiter)
+Inspired by [Symfony's Rate Limiter](https://github.com/symfony/rate-limiter) with full TypeScript support and async/await patterns.
 
 ## Testing
 
@@ -319,34 +183,22 @@ import { NoLimiter, InMemoryStorage } from '@zeitar/throttle';
 // Use NoLimiter for tests that shouldn't be rate limited
 const limiter = new NoLimiter();
 
-// Or use InMemoryStorage which can be cleared between tests
+// Or clear InMemoryStorage between tests
 const storage = new InMemoryStorage();
 storage.clear();
 ```
-
-## Comparison with Symfony Rate Limiter
-
-If you're familiar with Symfony's Rate Limiter, this library provides similar functionality for TypeScript/Node.js:
-
-- **Async/Await**: All methods return Promises for non-blocking operations
-- **TypeScript-native**: Full type safety with discriminated unions instead of OptionsResolver
-- **JSON Serialization**: Native JSON for state persistence
-- **Familiar API**: Similar method signatures (`reserve()`, `consume()`, `reset()`) for easy adoption
-
-## License
-
-MIT
 
 ## Contributing
 
 Contributions welcome! Please open an issue or PR.
 
+## License
+
+MIT © 2025 Khaled Zeitar
+
 ## Credits & Acknowledgments
 
-This library implements standard rate limiting algorithms (Token Bucket, Fixed Window, Sliding Window) with an architecture **inspired by** [Symfony's Rate Limiter component](https://github.com/symfony/rate-limiter).
-
 - **Implementation**: © 2025 Khaled Zeitar - Original TypeScript implementation
-- **Architectural inspiration**: Symfony Rate Limiter by Fabien Potencier and contributors
-- **License**: MIT
+- **Architectural inspiration**: [Symfony Rate Limiter](https://github.com/symfony/rate-limiter) by Fabien Potencier and contributors
 
-While the code is written from scratch in TypeScript, the design patterns, API structure, and architectural decisions are influenced by Symfony's proven approach to rate limiting. This provides the benefits of a battle-tested design while being built natively for Node.js with full TypeScript support and async/await patterns.
+While the code is written from scratch in TypeScript, the design patterns, API structure, and architectural decisions are influenced by Symfony's proven approach to rate limiting.
