@@ -10,7 +10,6 @@
     "sliding-window",
     "fixed-window",
     "api-rate-limit",
-    "symfony",
     "typescript",
     "async"
   ],
@@ -32,6 +31,9 @@
     }
   },
   "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "dist",
     "README.md",
